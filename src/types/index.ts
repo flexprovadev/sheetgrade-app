@@ -176,3 +176,32 @@ export interface TiposQuestaoResponse {
   null_mark: string;
   types: Record<string, TipoQuestao>;
 }
+
+export type ConfigKind =
+  | "student_columns"
+  | "exam_map"
+  | "question_types"
+  | "olap_columns";
+
+export interface ConfigGlobal {
+  id: number;
+  kind: ConfigKind;
+  version: string;
+  payload: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ConfigGlobalList {
+  items: ConfigGlobal[];
+}
+
+export interface SelfTestResponse {
+  message: string;
+  prova_id: number;
+  prova_codigo: string;
+  estatisticas: Estatisticas;
+  total_alunos: number;
+  ausentes: AlunoAusente[];
+  config_versions: Record<string, string>;
+}

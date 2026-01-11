@@ -9,6 +9,7 @@ import type {
   ProvaUpdate,
   QuestaoCreate,
   QuestaoUpdate,
+  ConfigKind,
 } from "@/types";
 
 // === ALUNOS ===
@@ -197,6 +198,55 @@ export function useDeleteQuestao() {
       queryClient.invalidateQueries({ queryKey: ["questoes"] });
       queryClient.invalidateQueries({ queryKey: ["provas"] });
     },
+  });
+}
+
+// === CONFIGS & DIAGNOSTICS ===
+
+export function useConfig(kind: ConfigKind) {
+  return useQuery({
+    queryKey: ["config", kind],
+    queryFn: () => api.getConfig(kind),
+  });
+}
+
+export function useConfigVersions(kind: ConfigKind) {
+  return useQuery({
+    queryKey: ["config", kind, "versions"],
+    queryFn: () => api.listConfigVersions(kind),
+  });
+}
+
+export function useCreateConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.createConfig,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["config", variables.kind] });
+      queryClient.invalidateQueries({ queryKey: ["config", variables.kind, "versions"] });
+    },
+  });
+}
+
+export function useActivateConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.activateConfig,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config"] });
+    },
+  });
+}
+
+export function useResetDatabase() {
+  return useMutation({
+    mutationFn: api.resetDatabase,
+  });
+}
+
+export function useSelfTest() {
+  return useMutation({
+    mutationFn: api.selfTest,
   });
 }
 

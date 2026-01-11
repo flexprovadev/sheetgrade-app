@@ -8,6 +8,7 @@ import {
   FileText,
   Edit3,
   BarChart3,
+  Settings,
   Menu,
   X,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const navigation = [
   { name: "Provas", href: "/provas", icon: FileText },
   { name: "Respostas", href: "/respostas", icon: Edit3 },
   { name: "Resultados", href: "/resultados", icon: BarChart3 },
+  { name: "Configurações", href: "/config", icon: Settings },
 ];
 
 export function Sidebar() {

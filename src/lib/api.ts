@@ -17,6 +17,9 @@ import type {
   QuestaoUpdate,
   ResultadoProvaResponse,
   TiposQuestaoResponse,
+  ConfigGlobal,
+  ConfigGlobalList,
+  SelfTestResponse,
 } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -115,14 +118,13 @@ export async function deleteAluno(id: number): Promise<MessageResponse> {
 export async function importAlunosCsv(
   provaId: number,
   file: File,
-  colId = "col01",
-  colNome = "col02"
+  colId?: string,
+  colNome?: string
 ): Promise<MessageResponse> {
-  return uploadFile(`/alunos/importar`, file, {
-    prova_id: provaId.toString(),
-    col_id: colId,
-    col_nome: colNome,
-  });
+  const params: Record<string, string> = { prova_id: provaId.toString() };
+  if (colId) params.col_id = colId;
+  if (colNome) params.col_nome = colNome;
+  return uploadFile(`/alunos/importar`, file, params);
 }
 
 // === PROVAS ===
@@ -197,17 +199,17 @@ export async function deleteQuestao(id: number): Promise<MessageResponse> {
 export async function importQuestoesCsv(
   provaId: number,
   file: File,
-  colId = "col01",
-  colQuestao = "col02",
-  colTipo = "col03",
-  colGabarito = "col04"
+  colId?: string,
+  colQuestao?: string,
+  colTipo?: string,
+  colGabarito?: string
 ): Promise<MessageResponse> {
-  return uploadFile(`/provas/${provaId}/questoes/importar`, file, {
-    col_id: colId,
-    col_questao: colQuestao,
-    col_tipo: colTipo,
-    col_gabarito: colGabarito,
-  });
+  const params: Record<string, string> = {};
+  if (colId) params.col_id = colId;
+  if (colQuestao) params.col_questao = colQuestao;
+  if (colTipo) params.col_tipo = colTipo;
+  if (colGabarito) params.col_gabarito = colGabarito;
+  return uploadFile(`/provas/${provaId}/questoes/importar`, file, params);
 }
 
 // === MARCACOES ===
@@ -247,15 +249,15 @@ export async function deleteMarcacao(id: number): Promise<MessageResponse> {
 export async function importMarcacoesCsv(
   provaId: number,
   file: File,
-  colControle = "col01",
-  colImagem = "col02",
-  colAluno = "col03"
+  colControle?: string,
+  colImagem?: string,
+  colAluno?: string
 ): Promise<MessageResponse> {
-  return uploadFile(`/provas/${provaId}/marcacoes/importar`, file, {
-    col_controle: colControle,
-    col_imagem: colImagem,
-    col_aluno: colAluno,
-  });
+  const params: Record<string, string> = {};
+  if (colControle) params.col_controle = colControle;
+  if (colImagem) params.col_imagem = colImagem;
+  if (colAluno) params.col_aluno = colAluno;
+  return uploadFile(`/provas/${provaId}/marcacoes/importar`, file, params);
 }
 
 // === RESULTADOS ===
@@ -295,4 +297,46 @@ export async function getTiposQuestao(): Promise<TiposQuestaoResponse> {
     throw new Error("Erro ao buscar tipos de questão");
   }
   return response.json();
+}
+
+// === CONFIGS ===
+
+export async function getConfig(kind: string): Promise<ConfigGlobal> {
+  return fetchApi(`/config/${kind}`);
+}
+
+export async function listConfigVersions(kind: string): Promise<ConfigGlobalList> {
+  return fetchApi(`/config/${kind}/versions`);
+}
+
+export async function createConfig(data: {
+  kind: string;
+  version?: string;
+  payload: unknown;
+  activate?: boolean;
+}): Promise<ConfigGlobal> {
+  return fetchApi("/config", {
+    method: "POST",
+    body: JSON.stringify({
+      kind: data.kind,
+      version: data.version || "1.0",
+      payload: data.payload,
+      activate: data.activate ?? true,
+    }),
+  });
+}
+
+export async function activateConfig(configId: number): Promise<MessageResponse> {
+  return fetchApi(`/config/${configId}/activate`, { method: "POST" });
+}
+
+// === DIAGNOSTICS ===
+
+export async function resetDatabase(): Promise<MessageResponse> {
+  return fetchApi("/diagnostics/reset-db?confirm=true", { method: "POST" });
+}
+
+export async function selfTest(resetDb = true): Promise<SelfTestResponse> {
+  const qs = resetDb ? "?reset_db=true" : "?reset_db=false";
+  return fetchApi(`/diagnostics/self-test${qs}`, { method: "POST" });
 }
